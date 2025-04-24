@@ -6,7 +6,7 @@ import sqlite3
 from datetime import datetime
 from db_setup import create_db
 from fastapi.staticfiles import StaticFiles
-
+from datetime import datetime, timezone
 
 create_db()
 
@@ -47,7 +47,7 @@ async def index_ws(websocket: WebSocket):
         prices = get_prices()
         index = calculate_index(prices)
 
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         for ticker, price in prices.items():
             insert_stock_price(timestamp, ticker, price)
       
