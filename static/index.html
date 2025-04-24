@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Average Stock Index</title>
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        background: url('/static/background.jpg') no-repeat center center fixed;
+        background-size: cover;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: black;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .index {
+            font-size: 48px;
+            color:green;
+            margin-bottom: 20px;
+        }
+
+        .tickers {
+            font-size: 18px;
+            color: black;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .tickers ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .tickers li {
+            color: black;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .info {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        .loading {
+            font-size: 20px;
+            color: #f39c12;
+        }
+
+        .error {
+            color: red;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Real-time Average Stock Index</h1>
+        <div class="index" id="indexValue">Loading...</div>
+        
+        <!-- List of stock tickers -->
+        <div class="tickers">
+            <h2>Stock Tickers:</h2>
+            <ul>
+                <li>AAPL - Apple</li>
+                <li>MSFT - Microsoft</li>
+                <li>META - Meta</li>
+                <li>AMZN - Amazon</li>
+                <li>GOOGL - Google</li>
+                <li>QCOM - Qualcomm</li>
+                <li>AVGO - Broadcom</li>
+                <li>TSLA - Tesla</li>
+                <li>NVDA - NVIDIA</li>
+                <li>AMD - AMD</li>
+                <li>ORCL - Oracle</li>
+                <li>ASML - ASML</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <span>Data fetched from stock prices.</span>
+        </div>
+        <div class="loading" id="loadingMessage"></div>
+        <div class="error" id="errorMessage"></div>
+    </div>
+
+    <script>
+        // Connect to the WebSocket
+        const ws = new WebSocket('ws://localhost:8000/ws/index');
+
+        // DOM elements
+        const indexValueElement = document.getElementById('indexValue');
+        const loadingMessageElement = document.getElementById('loadingMessage');
+        const errorMessageElement = document.getElementById('errorMessage');
+
+        // Handle WebSocket opening
+        ws.onopen = function() {
+            console.log('Connected to WebSocket');
+            loadingMessageElement.textContent = "Receiving live updates...";
+        };
+
+        // Handle incoming WebSocket messages
+        ws.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                if (data && data.value) {
+                    indexValueElement.textContent = `$${data.value.toFixed(2)}`;
+                    errorMessageElement.textContent = '';  // Clear any previous errors
+                }
+            } catch (error) {
+                console.error('Error processing WebSocket message:', error);
+                errorMessageElement.textContent = "Error: Failed to receive data.";
+            }
+        };
+
+        // Handle WebSocket errors
+        ws.onerror = function(event) {
+            console.error('WebSocket error:', event);
+            errorMessageElement.textContent = "Error: Unable to connect to the WebSocket.";
+        };
+
+        // Handle WebSocket closure
+        ws.onclose = function(event) {
+            console.log('WebSocket connection closed:', event);
+            errorMessageElement.textContent = "Connection lost. Retrying...";
+            setTimeout(() => {
+                location.reload();  // Reload page to attempt reconnection
+            }, 5000);
+        };
+    </script>
+</body>
+</html>
