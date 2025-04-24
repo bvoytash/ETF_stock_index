@@ -169,3 +169,7 @@ cython_debug/
 
 # Ignore Redis dump file
 dump.rdb
+
+#Ignore SQLite database files
+*.sqlite3   
+.db
