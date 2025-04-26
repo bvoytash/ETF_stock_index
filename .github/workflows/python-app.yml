@@ -36,7 +36,7 @@ jobs:
         
     - name: Set environment variables from secrets
       run: |
-        echo "DATABASE_EXTERNAL_URL=${{ secrets.DB_EXTERNAL_URL }}" >> $GITHUB_ENV
+        echo "DB_EXTERNAL_URL=${{ secrets.DB_EXTERNAL_URL }}" >> $GITHUB_ENV
         
     - name: Test with pytest
       run: |
