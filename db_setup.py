@@ -5,9 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DB_EXTERNAL_URL")
-
-database = Database(DATABASE_URL)
 metadata = MetaData()
 
 stock_prices = Table(
@@ -19,5 +16,14 @@ stock_prices = Table(
     Column("price", Float),
 )
 
-engine = create_engine(str(DATABASE_URL).replace("+asyncpg", ""))
-metadata.create_all(engine)
+def get_database():
+    DATABASE_URL = os.getenv("DB_EXTERNAL_URL")
+    if DATABASE_URL is None:
+        raise ValueError("DB_EXTERNAL_URL not set")
+    return Database(DATABASE_URL)
+
+def get_engine():
+    DATABASE_URL = os.getenv("DB_EXTERNAL_URL")
+    if DATABASE_URL is None:
+        raise ValueError("DB_EXTERNAL_URL not set")
+    return create_engine(str(DATABASE_URL).replace("+asyncpg", ""))

@@ -7,11 +7,14 @@ from datetime import datetime
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
-from db_setup import database, stock_prices
+from db_setup import get_database, stock_prices
 
+
+database = get_database()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
