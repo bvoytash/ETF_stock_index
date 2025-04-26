@@ -20,12 +20,14 @@ mock_prices = {
     'ASML': 850.0
 }
 
+client = TestClient(app)
+
 # Testing the root route
 def test_root_route_serves_html():
-    client = TestClient(app)
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
+    assert "<html" in response.text.lower()  # Extra strictness
 
 # Testing the index calculation logic
 def test_calculate_index():
@@ -60,16 +62,17 @@ def test_get_prices(mock_download):
 
     prices = get_prices()
     assert isinstance(prices, dict)
-    assert all(ticker in prices for ticker in mock_prices)
-    assert prices['AAPL'] == 175.0
+    assert prices == mock_prices
 
 # Testing WebSocket endpoint for stock average price calculation
+@patch("main.TIME_TO_SLEEP", 0)  # Make loop instant for testing
 @patch("main.get_prices")
-@patch("main.insert_stock_price")  # Prevent writing to DB during test
+@patch("main.insert_stock_price")  # Prevent DB writes during test
 def test_websocket_index(mock_insert, mock_get_prices):
-    # Return mock prices
     mock_get_prices.return_value = {
-        'AAPL': 100.0, 'MSFT': 200.0, 'GOOGL': 300.0
+        'AAPL': 100.0,
+        'MSFT': 200.0,
+        'GOOGL': 300.0,
     }
 
     with TestClient(app) as client:
