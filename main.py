@@ -4,37 +4,36 @@ import asyncio
 import yfinance as yf
 import sqlite3
 from datetime import datetime
-from db_setup import create_db
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
+from contextlib import asynccontextmanager
+from db_setup import database, stock_prices
 
-create_db()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await database.connect()
+    yield
+    await database.disconnect()
 
 
 tickers = ['AAPL', 'MSFT', 'META', 'AMZN', 'GOOGL', 'QCOM', 'AVGO', 'TSLA', 'NVDA', 'AMD', 'ORCL', 'ASML']
 
 TIME_TO_SLEEP = 300  # 5 minutes
 
-def insert_stock_price(timestamp, ticker, price):
+async def insert_stock_price(timestamp, ticker, price):
     if not isinstance(price, (int, float)):
         print(f"Skipping insert for {ticker}, price is not a float: {price}")
         return
 
     try:
-        conn = sqlite3.connect('stocks.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO stock_prices (timestamp, ticker, price)
-            VALUES (?, ?, ?)
-        ''', (timestamp, ticker, price))
-        conn.commit()
-    except sqlite3.Error as e:
-        print(f"Error inserting stock price into database: {e}")
-    finally:
-        conn.close()
+        query = stock_prices.insert().values(timestamp=timestamp, ticker=ticker, price=price)
+        await database.execute(query)
+    except Exception as e:
+        print(f"Error inserting stock price into PostgreSQL: {e}")
 
 @app.get("/")
 async def get():
@@ -47,9 +46,9 @@ async def index_ws(websocket: WebSocket):
         prices = get_prices()
         index = calculate_index(prices)
 
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(timezone.utc)
         for ticker, price in prices.items():
-            insert_stock_price(timestamp, ticker, price)
+            await insert_stock_price(timestamp, ticker, price)
       
         await websocket.send_json({"value": float(index)})
         await asyncio.sleep(TIME_TO_SLEEP)

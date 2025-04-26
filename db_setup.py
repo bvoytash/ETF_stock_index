@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, MetaData, Table
 from databases import Database
 import os
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv("DATABASE_EXTERNAL_URL")
+load_dotenv()
+
+DATABASE_URL = os.getenv("DB_EXTERNAL_URL")
 
 database = Database(DATABASE_URL)
 metadata = MetaData()
