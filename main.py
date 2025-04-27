@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from db_setup import get_database, stock_prices
+import os
 
 
 database = get_database()
