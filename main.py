@@ -77,7 +77,8 @@ def calculate_index(prices: dict):
 
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # default to 8000 for local testing
     run(
-        "main:app", host="0.0.0.0", port=8000, workers=4, 
-        #reload=True
-    )  # remove reload when finished with testing
+        "main:app", host="0.0.0.0", port=port, workers=4,
+        # reload=True
+    )
