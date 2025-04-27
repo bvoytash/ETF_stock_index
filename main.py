@@ -1,4 +1,5 @@
 from fastapi import FastAPI, WebSocket
+from uvicorn import run
 from fastapi.responses import FileResponse
 import asyncio
 import yfinance as yf
@@ -73,3 +74,9 @@ def calculate_index(prices: dict):
     if prices:
         return sum(prices.values()) / len(prices)
     return 0
+
+
+if __name__ == "__main__":
+    run(
+        "main:app", host="0.0.0.0", port=8000, workers=4, reload=True
+    )  # remove reload when finished with testing
